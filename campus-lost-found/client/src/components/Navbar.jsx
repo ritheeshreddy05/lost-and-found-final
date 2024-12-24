@@ -5,12 +5,14 @@ import { useAuth } from '../context/AuthContext';
 const Navbar = () => {
    const { rollNo, setRollNo } = useAuth();
    const navigate = useNavigate();
-    const handleLogout = () => {
+    
+   const handleLogout = () => {
        setRollNo(null);
        navigate('/login');
    };
-    return (
-       <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+    
+   return (
+       <nav className="navbar navbar-dark bg-dark">
            <div className="container-fluid">
                <Link className="navbar-brand d-flex align-items-center" to="/">
                    <img 
@@ -22,38 +24,44 @@ const Navbar = () => {
                            marginRight: '10px'
                        }}
                    />
-                   <span>Campus Lost & Found</span>
+                   <span>Campus Lost and Found</span>
                </Link>
                 {rollNo && (
-                   <>
-                       <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                           <span className="navbar-toggler-icon"></span>
-                       </button>
-                        <div className="collapse navbar-collapse" id="navbarNav">
-                           <ul className="navbar-nav me-auto">
-                               <li className="nav-item">
-                                   <Link className="nav-link" to="/">Home</Link>
-                               </li>
-                               <li className="nav-item">
-                                   <Link className="nav-link" to="/report">Report Item</Link>
-                               </li>
-                               <li className="nav-item">
-                                   <Link className="nav-link" to="/search">Search Items</Link>
-                               </li>
-                           </ul>
-                           <ul className="navbar-nav">
-                               <li className="nav-item">
-                                   <Link className="nav-link" to={`/profile/${rollNo}`}>Profile</Link>
-                               </li>
-                               <li className="nav-item">
-                                   <button className="nav-link btn btn-link" onClick={handleLogout}>
-                                       Logout
-                                   </button>
-                               </li>
-                           </ul>
+                   <div className="d-flex align-items-center gap-2">
+                       <div className="d-none d-md-flex gap-2">
+                           <Link 
+                               className="btn btn-outline-light btn-sm" 
+                               to="/"
+                           >
+                               Home
+                           </Link>
+                           <Link 
+                               className="btn btn-outline-light btn-sm" 
+                               to="/report"
+                           >
+                               Report
+                           </Link>
+                           <Link 
+                               className="btn btn-outline-light btn-sm" 
+                               to="/search"
+                           >
+                               Search
+                           </Link>
                        </div>
-                   </>
-               )}
+                       <Link 
+                           className="btn btn-outline-light btn-sm" 
+                           to={`/profile/${rollNo}`}
+                       >
+                           Profile
+                       </Link>
+                       <button 
+                           className="btn btn-outline-light btn-sm" 
+                           onClick={handleLogout}
+                       >
+                           Logout
+                       </button>
+                   </div>
+                )}
            </div>
        </nav>
    );
