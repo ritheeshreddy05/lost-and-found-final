@@ -1,0 +1,22 @@
+# Build settings
+[build]
+  # Base directory where the build command will run
+  base = "client"
+  # Command to build your frontend
+  command = "npm run build"
+  # Directory that contains the built frontend files
+  publish = "build"
+  # Directory containing your serverless functions
+  functions = "functions"
+
+# Redirect all API calls to serverless functions
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200
+
+# Redirect all other routes to index.html for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

@@ -47,12 +47,12 @@ const Admin = () => {
 
    const handleClaim = async (e) => {
        e.preventDefault();
-       if (!selectedItem || !claimRollNo) return;
+       if (!selectedItem || !claimRollNo) {
+           alert('Please enter a valid roll number');
+           return;
+       }
 
        try {
-           // Make the real API call to update status
-           await api.updateItemStatus(selectedItem._id, 'claimed');
-           
            // Update local state immediately for UI responsiveness
            setItems(prevItems => prevItems.map(item => 
                item._id === selectedItem._id 
@@ -109,9 +109,19 @@ const Admin = () => {
                                    {item.status !== 'claimed' && (
                                        <button 
                                            className="btn btn-sm btn-primary me-2"
-                                           onClick={() => openClaimModal(item)}
-                                           data-bs-toggle="modal"
-                                           data-bs-target="#claimModal"
+                                           onClick={() => {
+                                               const rollNo = prompt('Enter claimer roll number:');
+                                               if (rollNo) {
+                                                   setClaimRollNo(rollNo);
+                                                   openClaimModal(item);
+                                                   // Automatically trigger claim after getting roll number
+                                                   setItems(prevItems => prevItems.map(i => 
+                                                       i._id === item._id 
+                                                           ? { ...i, status: 'claimed', claimedByRollNo: rollNo }
+                                                           : i
+                                                   ));
+                                               }
+                                           }}
                                        >
                                            Update Status
                                        </button>
@@ -127,43 +137,6 @@ const Admin = () => {
                        ))}
                    </tbody>
                </table>
-           </div>
-
-           {/* Claim Modal */}
-           <div className="modal fade" id="claimModal" tabIndex="-1">
-               <div className="modal-dialog">
-                   <div className="modal-content">
-                       <div className="modal-header">
-                           <h5 className="modal-title">Update Item Status</h5>
-                           <button type="button" className="btn-close" data-bs-dismiss="modal"></button>
-                       </div>
-                       <form onSubmit={handleClaim}>
-                           <div className="modal-body">
-                               {selectedItem && (
-                                   <div className="mb-3">
-                                       <p><strong>Item:</strong> {selectedItem.title}</p>
-                                       <p><strong>Description:</strong> {selectedItem.description}</p>
-                                   </div>
-                               )}
-                               <div className="mb-3">
-                                   <label htmlFor="claimRollNo" className="form-label">Claimed By (Roll Number)</label>
-                                   <input
-                                       type="text"
-                                       className="form-control"
-                                       id="claimRollNo"
-                                       value={claimRollNo}
-                                       onChange={(e) => setClaimRollNo(e.target.value)}
-                                       required
-                                   />
-                               </div>
-                           </div>
-                           <div className="modal-footer">
-                               <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                               <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Update</button>
-                           </div>
-                       </form>
-                   </div>
-               </div>
            </div>
        </div>
    );
