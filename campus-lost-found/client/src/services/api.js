@@ -1,43 +1,45 @@
 import axios from 'axios';
 
-const BASE_URL = 'https://lost-and-found-final.onrender.com/api';
+const BASE_URL = 'https://lost-and-found-final.onrender.com';
+
+// Create axios instance with default config
+const axiosInstance = axios.create({
+    baseURL: BASE_URL,
+    headers: {
+        'Content-Type': 'application/json'
+    }
+});
 
 const api = {
-    // Item related endpoints
     getAllItems: async () => {
-        const response = await axios.get(`${BASE_URL}/items`);
-        return response.data;
-    },
-
-    createItem: async (formData) => {
         try {
-            const config = {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-                onUploadProgress: (progressEvent) => {
-                    const percentCompleted = Math.round(
-                        (progressEvent.loaded * 100) / progressEvent.total
-                    );
-                    console.log('Upload Progress:', percentCompleted);
-                }
-            };
-            const response = await axios.post(`${BASE_URL}/items`, formData, config);
+            const response = await axiosInstance.get('/items');
             return response.data;
         } catch (error) {
-            console.error('Error uploading:', error);
+            console.error('Error fetching items:', error);
             throw error;
         }
     },
 
-    searchItems: async (query) => {
-        const response = await axios.get(`${BASE_URL}/items/search?query=${query}`);
-        return response.data;
-    },
+    createItem: async (formData) => {
+        try {
+            // Log the FormData contents for debugging
+            for (let pair of formData.entries()) {
+                console.log('FormData:', pair[0], pair[1]);
+            }
 
-    updateItemStatus: async (itemId) => {
-        const response = await axios.put(`${BASE_URL}/items/${itemId}/status`);
-        return response.data;
+            const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            };
+
+            const response = await axiosInstance.post('/items', formData, config);
+            return response.data;
+        } catch (error) {
+            console.error('Error creating item:', error.response || error);
+            throw error;
+        }
     },
 
     updateItem: async (itemId, formData) => {
@@ -45,69 +47,54 @@ const api = {
             const config = {
                 headers: {
                     'Content-Type': 'multipart/form-data'
-                },
-                onUploadProgress: (progressEvent) => {
-                    const percentCompleted = Math.round(
-                        (progressEvent.loaded * 100) / progressEvent.total
-                    );
-                    console.log('Upload Progress:', percentCompleted);
                 }
             };
-            const response = await axios.put(`${BASE_URL}/items/${itemId}`, formData, config);
+            const response = await axiosInstance.put(`/items/${itemId}`, formData, config);
             return response.data;
         } catch (error) {
-            console.error('Error updating:', error);
+            console.error('Error updating item:', error);
             throw error;
         }
     },
 
     deleteItem: async (itemId) => {
         try {
-            const response = await axios.delete(`${BASE_URL}/items/${itemId}`);
+            const response = await axiosInstance.delete(`/items/${itemId}`);
             return response.data;
         } catch (error) {
-            console.error('Error deleting:', error);
+            console.error('Error deleting item:', error);
             throw error;
         }
     },
 
-    updateItemClaimed: async (itemId, claimedByRollNo) => {
-        const response = await axios.put(`${BASE_URL}/items/${itemId}/claim`, { claimedByRollNo });
-        return response.data;
-    },
-
-    // Student related endpoints
-    getStudentProfile: async (rollNo) => {
-        const response = await axios.get(`${BASE_URL}/students/${rollNo}`);
-        return response.data;
-    },
-
-    getStudentReportedItems: async (rollNo) => {
-        const response = await axios.get(`${BASE_URL}/students/${rollNo}/items`);
-        return response.data;
-    },
-
-    updateStudentRewards: async (rollNo, rewardType) => {
-        const response = await axios.post(`${BASE_URL}/students/${rollNo}/rewards`, { rewardType });
-        return response.data;
+    getNewItems: async (since) => {
+        try {
+            const response = await axiosInstance.get(`/items/new?since=${since}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error fetching new items:', error);
+            throw error;
+        }
     }
 };
 
-// Add response interceptor for error handling
-axios.interceptors.response.use(
+// Add response interceptor for better error handling
+axiosInstance.interceptors.response.use(
     response => response,
     error => {
         if (error.response) {
-            // Server responded with error status
+            // Server responded with error
             console.error('Server Error:', error.response.data);
+            throw error.response.data;
         } else if (error.request) {
             // Request made but no response
             console.error('Network Error:', error.request);
+            throw new Error('Network error - no response received');
         } else {
             // Error setting up request
-            console.error('Error:', error.message);
+            console.error('Request Error:', error.message);
+            throw error;
         }
-        return Promise.reject(error);
     }
 );
 

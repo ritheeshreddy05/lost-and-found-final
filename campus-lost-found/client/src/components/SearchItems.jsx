@@ -53,36 +53,88 @@ const SearchItems = () => {
   };
 
   const ItemCard = ({ item }) => (
-    <div className="col-md-6 mb-4">
-      <div className="card h-100 shadow-sm border-0">
-        <div className="card-body">
-          <div className="d-flex justify-content-between align-items-start mb-2">
-            <h5 className="card-title mb-0">{item.title}</h5>
-            <span className={`badge ${getStatusBadgeClass(item.status)} rounded-pill`}>
-              {item.status?.charAt(0).toUpperCase() + item.status?.slice(1)}
-            </span>
-          </div>
-          <p className="card-text text-muted">{item.description}</p>
-          <div className="mt-3">
-            <div className="d-flex mb-2">
-              <i className="bi bi-geo-alt text-primary me-2"></i>
-              <p className="mb-0"><strong>Found at:</strong> {item.foundLocation}</p>
+    <div className="col-12 col-sm-6 col-lg-4 mb-4">
+      <div className="card h-100 shadow-lg border-0 hover-effect">
+        <div className="position-relative">
+          {item.image && item.image.url ? (
+            <img 
+              src={item.image.url} 
+              className="card-img-top"
+              alt={item.title}
+              style={{ 
+                height: '200px', 
+                objectFit: 'cover',
+                '@media (max-width: 576px)': {
+                  height: '250px'
+                }
+              }}
+            />
+          ) : (
+            <div className="bg-light d-flex align-items-center justify-content-center" 
+                 style={{ 
+                   height: '200px',
+                   '@media (max-width: 576px)': {
+                     height: '250px'
+                   }
+                 }}>
+              <i className="bi bi-image text-muted" style={{ fontSize: '3rem' }}></i>
             </div>
-            <div className="d-flex mb-2">
-              <i className="bi bi-box-seam text-primary me-2"></i>
-              <p className="mb-0"><strong>Pickup Location:</strong> {item.handoverLocation}</p>
+          )}
+          <span className={`badge ${getStatusBadgeClass(item.status)} position-absolute top-0 end-0 m-3 px-3 py-2`}>
+            {item.status?.charAt(0).toUpperCase() + item.status?.slice(1)}
+          </span>
+        </div>
+        
+        <div className="card-body p-3 p-sm-4">
+          <h5 className="card-title fw-bold mb-3 text-break">{item.title}</h5>
+          <p className="card-text text-muted mb-4 small">
+            {item.description}
+          </p>
+          
+          <div className="details-section">
+            <div className="d-flex align-items-center mb-3">
+              <div className="icon-wrapper bg-light rounded-circle p-2 me-3">
+                <i className="bi bi-geo-alt text-primary"></i>
+              </div>
+              <div className="flex-grow-1">
+                <small className="text-muted d-block">Found at</small>
+                <strong className="text-break">{item.foundLocation}</strong>
+              </div>
             </div>
+
+            <div className="d-flex align-items-center mb-3">
+              <div className="icon-wrapper bg-light rounded-circle p-2 me-3">
+                <i className="bi bi-box-seam text-primary"></i>
+              </div>
+              <div className="flex-grow-1">
+                <small className="text-muted d-block">Pickup Location</small>
+                <strong className="text-break">{item.handoverLocation}</strong>
+              </div>
+            </div>
+
             {item.claimerRollNo && (
-              <div className="d-flex mb-2">
-                <i className="bi bi-person-check text-primary me-2"></i>
-                <p className="mb-0"><strong>Claimed by:</strong> {item.claimerRollNo}</p>
+              <div className="d-flex align-items-center mb-3">
+                <div className="icon-wrapper bg-light rounded-circle p-2 me-3">
+                  <i className="bi bi-person-check text-primary"></i>
+                </div>
+                <div className="flex-grow-1">
+                  <small className="text-muted d-block">Claimed by</small>
+                  <strong className="text-break">{item.claimerRollNo}</strong>
+                </div>
               </div>
             )}
-            <div className="d-flex mt-3 text-muted">
+          </div>
+
+          <div className="mt-3 pt-3 border-top">
+            <div className="d-flex align-items-center text-muted small">
               <i className="bi bi-clock me-2"></i>
-              <small>
-                Reported on: {new Date(item.createdAt).toLocaleDateString()}
-              </small>
+              <span className="text-wrap">
+                Reported on: {new Date(item.createdAt).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'short',
+                  day: 'numeric'
+                })}
+              </span>
             </div>
           </div>
         </div>
@@ -99,14 +151,14 @@ const SearchItems = () => {
   });
 
   return (
-    <div className="container py-5">
-      <div className="text-center mb-5">
+    <div className="container py-4 py-sm-5">
+      <div className="text-center mb-4 mb-sm-5">
         <h2 className="display-6 fw-bold text-primary mb-2">Search Lost Items</h2>
         <p className="text-muted">Find items that have been reported as found on campus</p>
       </div>
 
       <div className="row justify-content-center mb-4">
-        <div className="col-md-8">
+        <div className="col-12 col-md-8 px-4 px-sm-3">
           <div className="input-group">
             <span className="input-group-text bg-white border-end-0">
               <i className="bi bi-search text-muted"></i>
@@ -144,7 +196,7 @@ const SearchItems = () => {
       </div>
 
       {error && (
-        <div className="alert alert-danger text-center" role="alert">
+        <div className="alert alert-danger text-center mx-3" role="alert">
           {error}
         </div>
       )}
@@ -157,7 +209,7 @@ const SearchItems = () => {
         </div>
       ) : (
         <>
-          <div className="row">
+          <div className="row px-2 px-sm-3">
             {filteredItems.map((item) => (
               <ItemCard key={item._id} item={item} />
             ))}

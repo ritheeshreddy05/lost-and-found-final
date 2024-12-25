@@ -22,7 +22,7 @@ const itemSchema = new mongoose.Schema({
     },
     handoverLocation: {
         type: String,
-        required: true,
+        default: 'Security Office',
         trim: true
     },
     reporterRollNo: {

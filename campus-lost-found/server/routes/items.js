@@ -13,28 +13,20 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Create new item with image
+// Create new item
 router.post('/', upload.single('image'), async (req, res) => {
     try {
-        // Validate required fields
-        const requiredFields = ['title', 'description', 'foundLocation', 'reporterRollNo'];
-        for (const field of requiredFields) {
-            if (!req.body[field]) {
-                return res.status(400).json({ 
-                    success: false, 
-                    message: `${field} is required` 
-                });
-            }
-        }
-
+        // Create item data with default handoverLocation
         const itemData = {
             title: req.body.title,
             description: req.body.description,
             foundLocation: req.body.foundLocation,
-            handoverLocation: req.body.handoverLocation || req.body.foundLocation, // Default to foundLocation if not provided
-            reporterRollNo: req.body.reporterRollNo
+            reporterRollNo: req.body.reporterRollNo,
+            handoverLocation: 'Security Office', // Set default value
+            status: 'pending'
         };
 
+        // Add image if uploaded
         if (req.file) {
             itemData.image = {
                 url: req.file.path,
@@ -42,14 +34,21 @@ router.post('/', upload.single('image'), async (req, res) => {
             };
         }
 
-        const item = await Item.create(itemData);
-        res.status(201).json({ success: true, item });
+        console.log('Creating item with data:', itemData); // Debug log
+
+        const newItem = new Item(itemData);
+        const savedItem = await newItem.save();
+
+        res.status(201).json({
+            success: true,
+            item: savedItem
+        });
     } catch (error) {
-        // Cleanup uploaded image if item creation fails
-        if (req.file && req.file.filename) {
-            await cloudinary.uploader.destroy(req.file.filename);
-        }
-        res.status(500).json({ success: false, message: error.message });
+        console.error('Error creating item:', error);
+        res.status(400).json({
+            success: false,
+            message: error.message || 'Error creating item'
+        });
     }
 });
 
@@ -152,6 +151,23 @@ router.put('/:id', upload.single('image'), async (req, res) => {
             await cloudinary.uploader.destroy(req.file.filename);
         }
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// Add this new route
+router.get('/new', async (req, res) => {
+    try {
+        const { since } = req.query;
+        const newItems = await Item.find({
+            createdAt: { $gt: new Date(parseInt(since)) }
+        }).sort({ createdAt: -1 });
+        
+        res.json(newItems);
+    } catch (error) {
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error fetching new items' 
+        });
     }
 });
 

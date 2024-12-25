@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import api from '../services/api';
 import { useAuth } from '../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
-const ReportItem = () => {
+const ReportItem = ({ onItemReported }) => {
   const { rollNo } = useAuth();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -13,6 +15,19 @@ const ReportItem = () => {
   const [imagePreview, setImagePreview] = useState(null);
   const [status, setStatus] = useState({ type: '', message: '' });
   const [loading, setLoading] = useState(false);
+
+  const resetForm = () => {
+    setFormData({
+      title: '',
+      description: '',
+      foundLocation: ''
+    });
+    setImage(null);
+    setImagePreview(null);
+    const fileInput = document.querySelector('input[type="file"]');
+    if (fileInput) fileInput.value = '';
+    setStatus({ type: '', message: '' });
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -25,33 +40,18 @@ const ReportItem = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      // Validate file size (5MB limit)
       if (file.size > 5 * 1024 * 1024) {
         setStatus({
           type: 'danger',
           message: 'Image size must be less than 5MB'
         });
-        e.target.value = ''; // Reset file input
-        setImage(null);
-        setImagePreview(null);
-        return;
-      }
-
-      // Validate file type
-      if (!file.type.match(/^image\/(jpeg|jpg|png)$/)) {
-        setStatus({
-          type: 'danger',
-          message: 'Only JPG and PNG images are allowed'
-        });
-        e.target.value = ''; // Reset file input
+        e.target.value = '';
         setImage(null);
         setImagePreview(null);
         return;
       }
 
       setImage(file);
-
-      // Create preview
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result);
@@ -66,41 +66,36 @@ const ReportItem = () => {
     setStatus({ type: 'info', message: 'Uploading...' });
 
     try {
-      // Create FormData object
       const formDataToSend = new FormData();
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('foundLocation', formData.foundLocation);
+      formDataToSend.append('reporterRollNo', rollNo);
+      formDataToSend.append('handoverLocation', 'Security Office');
 
-      // Append image if exists
       if (image) {
         formDataToSend.append('image', image);
       }
 
-      // Send to server
       const response = await api.createItem(formDataToSend);
-
+      
       if (response.success) {
         setStatus({ type: 'success', message: 'Item reported successfully!' });
-        // Reset form
-        setFormData({
-          title: '',
-          description: '',
-          foundLocation: ''
-        });
-        setImage(null);
-        setImagePreview(null);
-        // Reset file input
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) fileInput.value = '';
+        resetForm();
+        if (onItemReported) {
+          onItemReported(response.item);
+        }
+        setTimeout(() => {
+          navigate('/');
+        }, 2000);
       } else {
-        throw new Error(response.message || 'Failed to report item');
+        throw new Error(response.message || 'Failed to create item');
       }
     } catch (error) {
       console.error('Error:', error);
       setStatus({
         type: 'danger',
-        message: error.response?.data?.message || 'Error reporting item'
+        message: error.response?.data?.message || 'Error creating item'
       });
     } finally {
       setLoading(false);
@@ -113,10 +108,20 @@ const ReportItem = () => {
         <div className="col-md-8">
           <div className="card shadow-sm border-0">
             <div className="card-body p-4">
+              <div className="alert alert-info mb-4" role="alert">
+                <i className="bi bi-info-circle me-2"></i>
+                Please submit the found item to the Security Office located on the Ground Floor, B Block.
+              </div>
+
               {status.message && (
                 <div className={`alert alert-${status.type} alert-dismissible fade show`} role="alert">
                   {status.message}
-                  <button type="button" className="btn-close" onClick={() => setStatus({ type: '', message: '' })} aria-label="Close"></button>
+                  <button 
+                    type="button" 
+                    className="btn-close" 
+                    onClick={() => setStatus({ type: '', message: '' })} 
+                    aria-label="Close"
+                  ></button>
                 </div>
               )}
 
@@ -204,18 +209,20 @@ const ReportItem = () => {
                   )}
                 </div>
 
-                <button 
-                  type="submit" 
-                  className="btn btn-primary w-100" 
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <>
-                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                      Uploading...
-                    </>
-                  ) : 'Submit Report'}
-                </button>
+                <div className="d-grid">
+                  <button 
+                    type="submit" 
+                    className="btn btn-primary"
+                    disabled={loading}
+                  >
+                    {loading ? (
+                      <>
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        Uploading...
+                      </>
+                    ) : 'Submit Report'}
+                  </button>
+                </div>
               </form>
             </div>
           </div>

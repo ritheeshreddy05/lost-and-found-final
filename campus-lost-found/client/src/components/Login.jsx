@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 
 const Login = () => {
-  const [isAdmin, setIsAdmin] = useState(false);
+  const [userType, setUserType] = useState('student'); // student, faculty, admin
   const [rollNo, setRollNo] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -12,12 +12,19 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (isAdmin) {
+    if (userType === 'admin') {
       if (rollNo === 'admin' && password === 'admin') {
         setGlobalRollNo('admin');
-        navigate('/admin', { replace: true }); // Force navigation to admin page
+        navigate('/admin', { replace: true });
       } else {
         setError('Invalid admin credentials');
+      }
+    } else if (userType === 'faculty') {
+      if (password === 'faculty') { // Simple faculty password validation
+        setGlobalRollNo(`faculty_${rollNo}`);
+        navigate('/', { replace: true });
+      } else {
+        setError('Invalid faculty credentials');
       }
     } else {
       if (password === 'vnrvjiet') {
@@ -27,6 +34,13 @@ const Login = () => {
         setError('Invalid student credentials');
       }
     }
+  };
+
+  const switchUserType = (type) => {
+    setUserType(type);
+    setError('');
+    setRollNo('');
+    setPassword('');
   };
 
   return (
@@ -43,26 +57,24 @@ const Login = () => {
                   <div className="btn-group w-100" role="group">
                     <button
                       type="button"
-                      className={`btn ${!isAdmin ? 'btn-primary' : 'btn-outline-primary'} w-50`}
-                      onClick={() => {
-                        setIsAdmin(false);
-                        setError('');
-                        setRollNo('');
-                        setPassword('');
-                      }}
+                      className={`btn ${userType === 'student' ? 'btn-primary' : 'btn-outline-primary'} w-33`}
+                      onClick={() => switchUserType('student')}
                     >
                       <i className="bi bi-person-fill me-2"></i>
                       Student
                     </button>
                     <button
                       type="button"
-                      className={`btn ${isAdmin ? 'btn-primary' : 'btn-outline-primary'} w-50`}
-                      onClick={() => {
-                        setIsAdmin(true);
-                        setError('');
-                        setRollNo('');
-                        setPassword('');
-                      }}
+                      className={`btn ${userType === 'faculty' ? 'btn-primary' : 'btn-outline-primary'} w-33`}
+                      onClick={() => switchUserType('faculty')}
+                    >
+                      <i className="bi bi-person-badge-fill me-2"></i>
+                      Faculty
+                    </button>
+                    <button
+                      type="button"
+                      className={`btn ${userType === 'admin' ? 'btn-primary' : 'btn-outline-primary'} w-33`}
+                      onClick={() => switchUserType('admin')}
                     >
                       <i className="bi bi-shield-lock-fill me-2"></i>
                       Admin
@@ -83,13 +95,19 @@ const Login = () => {
                       type="text"
                       className="form-control"
                       id="rollNo"
-                      placeholder={isAdmin ? 'Enter admin username' : 'Enter roll number'}
+                      placeholder={
+                        userType === 'admin' ? 'Enter admin username' : 
+                        userType === 'faculty' ? 'Enter faculty ID' : 
+                        'Enter roll number'
+                      }
                       value={rollNo}
                       onChange={(e) => setRollNo(e.target.value)}
                       required
                     />
                     <label htmlFor="rollNo">
-                      {isAdmin ? 'Admin Username' : 'Roll Number'}
+                      {userType === 'admin' ? 'Admin Username' : 
+                       userType === 'faculty' ? 'Faculty ID' : 
+                       'Roll Number'}
                     </label>
                   </div>
                   <div className="form-floating mb-4">
@@ -109,11 +127,9 @@ const Login = () => {
                     className="btn btn-primary w-100 py-2 mb-3 d-flex align-items-center justify-content-center"
                   >
                     <i className="bi bi-box-arrow-in-right me-2"></i>
-                    {isAdmin ? 'Login as Admin' : 'Login as Student'}
+                    {`Login as ${userType.charAt(0).toUpperCase() + userType.slice(1)}`}
                   </button>
                 </form>
-                
-                
               </div>
             </div>
           </div>
