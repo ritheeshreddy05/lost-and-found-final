@@ -8,10 +8,10 @@ const SearchItems = () => {
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
 
-  const fetchItems = useCallback(async (query = '') => {
+  const fetchItems = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await (query ? api.searchItems(query) : api.getAllItems());
+      const response = await api.getAllItems();
       setItems(response || []);
       setError('');
     } catch (error) {
@@ -28,15 +28,8 @@ const SearchItems = () => {
   }, [fetchItems]);
 
   const handleSearch = (e) => {
-    const query = e.target.value;
+    const query = e.target.value.toLowerCase();
     setSearchQuery(query);
-    const timeoutId = setTimeout(() => {
-      fetchItems(query);
-    }, 500);
-
-    return () => {
-      clearTimeout(timeoutId);
-    };
   };
 
   const getStatusBadgeClass = (status) => {
@@ -143,10 +136,14 @@ const SearchItems = () => {
   );
 
   const filteredItems = items.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(searchQuery) || 
+                         item.description.toLowerCase().includes(searchQuery) ||
+                         item.foundLocation.toLowerCase().includes(searchQuery);
+                         
     if (activeTab === 'pending') {
-      return item.status === 'pending';
+      return matchesSearch && item.status === 'pending';
     } else {
-      return item.status === 'claimed' || item.status === 'handovered';
+      return matchesSearch && (item.status === 'claimed' || item.status === 'handovered');
     }
   });
 
@@ -166,7 +163,7 @@ const SearchItems = () => {
             <input
               type="text"
               className="form-control border-start-0 ps-0"
-              placeholder="Search by title..."
+              placeholder="Search by title, description or location..."
               value={searchQuery}
               onChange={handleSearch}
             />
