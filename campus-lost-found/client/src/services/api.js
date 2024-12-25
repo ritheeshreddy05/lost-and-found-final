@@ -10,13 +10,24 @@ const api = {
     },
 
     createItem: async (formData) => {
-        const config = {
-            headers: {
-                'Content-Type': 'multipart/form-data'  // Important for file upload
-            }
-        };
-        const response = await axios.post(`${BASE_URL}/items`, formData, config);
-        return response.data;
+        try {
+            const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round(
+                        (progressEvent.loaded * 100) / progressEvent.total
+                    );
+                    console.log('Upload Progress:', percentCompleted);
+                }
+            };
+            const response = await axios.post(`${BASE_URL}/items`, formData, config);
+            return response.data;
+        } catch (error) {
+            console.error('Error uploading:', error);
+            throw error;
+        }
     },
 
     searchItems: async (query) => {
@@ -29,20 +40,35 @@ const api = {
         return response.data;
     },
 
-    // Added method for updating item with image
     updateItem: async (itemId, formData) => {
-        const config = {
-            headers: {
-                'Content-Type': 'multipart/form-data'
-            }
-        };
-        const response = await axios.put(`${BASE_URL}/items/${itemId}`, formData, config);
-        return response.data;
+        try {
+            const config = {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                onUploadProgress: (progressEvent) => {
+                    const percentCompleted = Math.round(
+                        (progressEvent.loaded * 100) / progressEvent.total
+                    );
+                    console.log('Upload Progress:', percentCompleted);
+                }
+            };
+            const response = await axios.put(`${BASE_URL}/items/${itemId}`, formData, config);
+            return response.data;
+        } catch (error) {
+            console.error('Error updating:', error);
+            throw error;
+        }
     },
 
     deleteItem: async (itemId) => {
-        const response = await axios.delete(`${BASE_URL}/items/${itemId}`);
-        return response.data;
+        try {
+            const response = await axios.delete(`${BASE_URL}/items/${itemId}`);
+            return response.data;
+        } catch (error) {
+            console.error('Error deleting:', error);
+            throw error;
+        }
     },
 
     updateItemClaimed: async (itemId, claimedByRollNo) => {
@@ -66,5 +92,23 @@ const api = {
         return response.data;
     }
 };
+
+// Add response interceptor for error handling
+axios.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response) {
+            // Server responded with error status
+            console.error('Server Error:', error.response.data);
+        } else if (error.request) {
+            // Request made but no response
+            console.error('Network Error:', error.request);
+        } else {
+            // Error setting up request
+            console.error('Error:', error.message);
+        }
+        return Promise.reject(error);
+    }
+);
 
 export default api;
