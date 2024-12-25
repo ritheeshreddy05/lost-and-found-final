@@ -16,6 +16,11 @@ const itemSchema = new mongoose.Schema({
         required: true,
         trim: true
     },
+    handoverLocation: {
+        type: String,
+        required: true,
+        trim: true
+    },
     reporterRollNo: {
         type: String,
         required: true,
