@@ -6,12 +6,14 @@ const ReportItem = () => {
   const { rollNo } = useAuth();
   const initialFormState = {
     title: '',
-    description: '',
+    description: '', 
     foundLocation: '',
-    handoverLocation: ''
+    handoverLocation: '',
+    image: null
   };
 
   const [formData, setFormData] = useState(initialFormState);
+  const [imagePreview, setImagePreview] = useState(null);
   const [status, setStatus] = useState({ type: '', message: '' });
   const [loading, setLoading] = useState(false);
 
@@ -23,22 +25,52 @@ const ReportItem = () => {
     }));
   };
 
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        setStatus({
+          type: 'danger',
+          message: 'Image size must be less than 5MB'
+        });
+        return;
+      }
+      setFormData(prevState => ({
+        ...prevState,
+        image: file
+      }));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setStatus({ type: 'info', message: 'Submitting...' });
 
     try {
-      // Create the item data object with all required fields
-      const itemData = {
-        ...formData,
-        reporterRollNo: rollNo,
-        status: 'pending' // Set default status
-      };
+      const formDataToSend = new FormData();
+      Object.keys(formData).forEach(key => {
+        if (formData[key] !== null) {
+          formDataToSend.append(key, formData[key]);
+        }
+      });
+      formDataToSend.append('reporterRollNo', rollNo);
+      formDataToSend.append('status', 'pending');
+
+      const response = await api.createItem(formDataToSend);
       
-      await api.createItem(itemData);
-      setStatus({ type: 'success', message: 'Item reported successfully!' });
-      setFormData(initialFormState);
+      if (response.success) {
+        setStatus({ type: 'success', message: 'Item reported successfully!' });
+        setFormData(initialFormState);
+        setImagePreview(null);
+      } else {
+        throw new Error(response.message || 'Failed to create item');
+      }
     } catch (error) {
       console.error('Error creating item:', error);
       setStatus({ 
@@ -67,21 +99,21 @@ const ReportItem = () => {
           {status.message && (
             <div className={`alert alert-${status.type} alert-dismissible fade show mb-4`} role="alert">
               {status.message}
-              <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              <button type="button" className="btn-close" onClick={() => setStatus({ type: '', message: '' })} aria-label="Close"></button>
             </div>
           )}
 
           <div className="card shadow-sm border-0">
-            <div className="card-body p-4 p-md-5">
-              <form onSubmit={handleSubmit}>
-                <div className="mb-4">
-                  <label htmlFor="title" className="form-label fw-medium">Item Title</label>
+            <div className="card-body p-4">
+              <form onSubmit={handleSubmit} encType="multipart/form-data">
+                <div className="mb-3">
+                  <label htmlFor="title" className="form-label">Title</label>
                   <input
                     type="text"
-                    className="form-control form-control-lg"
+                    className="form-control"
                     id="title"
                     name="title"
-                    placeholder="e.g. Blue Backpack"
+                    placeholder="e.g., Blue Backpack, ID Card, Phone"
                     value={formData.title}
                     onChange={handleChange}
                     required
@@ -89,30 +121,29 @@ const ReportItem = () => {
                   />
                 </div>
 
-                <div className="mb-4">
-                  <label htmlFor="description" className="form-label fw-medium">Description</label>
+                <div className="mb-3">
+                  <label htmlFor="description" className="form-label">Description</label>
                   <textarea
-                    className="form-control form-control-lg"
+                    className="form-control"
                     id="description"
                     name="description"
-                    placeholder="Provide detailed description of the item..."
+                    placeholder="Brief description with color, brand, and identifying features"
                     value={formData.description}
                     onChange={handleChange}
-                    rows="4"
+                    rows="3"
                     required
                     disabled={loading}
                   />
-                  <div className="form-text">Include details like brand, color, size, and any distinguishing features</div>
                 </div>
 
-                <div className="mb-4">
-                  <label htmlFor="foundLocation" className="form-label fw-medium">Found Location</label>
+                <div className="mb-3">
+                  <label htmlFor="foundLocation" className="form-label">Found Location</label>
                   <input
                     type="text"
-                    className="form-control form-control-lg"
+                    className="form-control"
                     id="foundLocation"
                     name="foundLocation"
-                    placeholder="e.g. Library Second Floor"
+                    placeholder="e.g., Library 2nd Floor, Cafeteria, Room 301"
                     value={formData.foundLocation}
                     onChange={handleChange}
                     required
@@ -120,14 +151,14 @@ const ReportItem = () => {
                   />
                 </div>
 
-                <div className="mb-4">
-                  <label htmlFor="handoverLocation" className="form-label fw-medium">Handover Location</label>
+                <div className="mb-3">
+                  <label htmlFor="handoverLocation" className="form-label">Handover Location</label>
                   <input
                     type="text"
-                    className="form-control form-control-lg"
+                    className="form-control"
                     id="handoverLocation"
                     name="handoverLocation"
-                    placeholder="e.g. Campus Security Office"
+                    placeholder="e.g., Lost & Found Office, Department Office"
                     value={formData.handoverLocation}
                     onChange={handleChange}
                     required
@@ -135,9 +166,33 @@ const ReportItem = () => {
                   />
                 </div>
 
+                <div className="mb-3">
+                  <label htmlFor="image" className="form-label">Image</label>
+                  <input
+                    type="file"
+                    className="form-control"
+                    id="image"
+                    name="image"
+                    accept="image/jpeg,image/jpg,image/png"
+                    onChange={handleImageChange}
+                    disabled={loading}
+                  />
+                  <small className="text-muted">Max size: 5MB (JPG/PNG)</small>
+                  {imagePreview && (
+                    <div className="mt-2">
+                      <img 
+                        src={imagePreview} 
+                        alt="Preview" 
+                        className="img-thumbnail" 
+                        style={{ maxHeight: '200px' }} 
+                      />
+                    </div>
+                  )}
+                </div>
+
                 <button 
                   type="submit" 
-                  className="btn btn-primary btn-lg w-100 fw-medium"
+                  className="btn btn-primary w-100" 
                   disabled={loading}
                 >
                   {loading ? (
@@ -145,9 +200,7 @@ const ReportItem = () => {
                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                       Submitting...
                     </>
-                  ) : (
-                    <>Submit Report</>
-                  )}
+                  ) : 'Submit Report'}
                 </button>
               </form>
             </div>

@@ -9,8 +9,13 @@ const api = {
         return response.data;
     },
 
-    createItem: async (itemData) => {
-        const response = await axios.post(`${BASE_URL}/items`, itemData);
+    createItem: async (formData) => {
+        const config = {
+            headers: {
+                'Content-Type': 'multipart/form-data'  // Important for file upload
+            }
+        };
+        const response = await axios.post(`${BASE_URL}/items`, formData, config);
         return response.data;
     },
 
@@ -21,6 +26,27 @@ const api = {
 
     updateItemStatus: async (itemId) => {
         const response = await axios.put(`${BASE_URL}/items/${itemId}/status`);
+        return response.data;
+    },
+
+    // Added method for updating item with image
+    updateItem: async (itemId, formData) => {
+        const config = {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        };
+        const response = await axios.put(`${BASE_URL}/items/${itemId}`, formData, config);
+        return response.data;
+    },
+
+    deleteItem: async (itemId) => {
+        const response = await axios.delete(`${BASE_URL}/items/${itemId}`);
+        return response.data;
+    },
+
+    updateItemClaimed: async (itemId, claimedByRollNo) => {
+        const response = await axios.put(`${BASE_URL}/items/${itemId}/claim`, { claimedByRollNo });
         return response.data;
     },
 
@@ -37,14 +63,6 @@ const api = {
 
     updateStudentRewards: async (rollNo, rewardType) => {
         const response = await axios.post(`${BASE_URL}/students/${rollNo}/rewards`, { rewardType });
-        return response.data;
-    },
-    deleteItem: async (itemId) => {
-        const response = await axios.delete(`${BASE_URL}/items/${itemId}`);
-        return response.data;
-    },
-     updateItemClaimed: async (itemId, claimedByRollNo) => {
-        const response = await axios.put(`${BASE_URL}/items/${itemId}/claim`, { claimedByRollNo });
         return response.data;
     }
 };
