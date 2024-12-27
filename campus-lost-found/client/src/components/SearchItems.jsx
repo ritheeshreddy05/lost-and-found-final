@@ -7,6 +7,7 @@ const SearchItems = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
+  const [activeCategory, setActiveCategory] = useState('All');
 
   const fetchItems = useCallback(async () => {
     setLoading(true);
@@ -56,19 +57,13 @@ const SearchItems = () => {
               alt={item.title}
               style={{ 
                 height: '200px', 
-                objectFit: 'cover',
-                '@media (max-width: 576px)': {
-                  height: '250px'
-                }
+                objectFit: 'cover'
               }}
             />
           ) : (
             <div className="bg-light d-flex align-items-center justify-content-center" 
                  style={{ 
-                   height: '200px',
-                   '@media (max-width: 576px)': {
-                     height: '250px'
-                   }
+                   height: '200px'
                  }}>
               <i className="bi bi-image text-muted" style={{ fontSize: '3rem' }}></i>
             </div>
@@ -140,11 +135,14 @@ const SearchItems = () => {
                          item.description.toLowerCase().includes(searchQuery) ||
                          item.foundLocation.toLowerCase().includes(searchQuery);
                          
+    const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
+
     if (activeTab === 'pending') {
-      return matchesSearch && item.status === 'pending';
-    } else {
-      return matchesSearch && (item.status === 'claimed' || item.status === 'handovered');
+      return matchesSearch && item.status === 'pending' && matchesCategory;
+    } else if (activeTab === 'claimed') {
+      return matchesSearch && item.status === 'claimed' && matchesCategory;
     }
+    return false; // No other tabs are allowed
   });
 
   return (
@@ -183,13 +181,32 @@ const SearchItems = () => {
           </li>
           <li className="nav-item">
             <button 
-              className={`nav-link ${activeTab === 'completed' ? 'active' : ''}`}
-              onClick={() => setActiveTab('completed')}
+              className={`nav-link ${activeTab === 'claimed' ? 'active' : ''}`}
+              onClick={() => setActiveTab('claimed')}
             >
-              Completed Items
+              Claimed Items
             </button>
           </li>
         </ul>
+      </div>
+
+      <div className="mb-4">
+        <select 
+          className="form-select"
+          value={activeCategory}
+          onChange={(e) => setActiveCategory(e.target.value)}
+        >
+          <option value="All">All Categories</option>
+          <option value="Stationery">Stationery</option>
+          <option value="Electronics">Electronics</option>
+          <option value="Clothing">Clothing</option>
+          <option value="Personal belongings">Personal belongings</option>
+          <option value="Academic materials">Academic materials</option>
+          <option value="Accessories">Accessories</option>
+          <option value="Sports equipment">Sports equipment</option>
+          <option value="Food containers/Water bottles">Food containers/Water bottles</option>
+          <option value="Other">Other</option>
+        </select>
       </div>
 
       {error && (
@@ -207,23 +224,23 @@ const SearchItems = () => {
       ) : (
         <>
           <div className="row px-2 px-sm-3">
-            {filteredItems.map((item) => (
-              <ItemCard key={item._id} item={item} />
-            ))}
-          </div>
-
-          {!loading && filteredItems.length === 0 && (
-            <div className="text-center mt-5">
-              <div className="mb-4">
-                <i className="bi bi-inbox display-1 text-muted"></i>
+            {filteredItems.length > 0 ? (
+              filteredItems.map((item) => (
+                <ItemCard key={item._id} item={item} />
+              ))
+            ) : (
+              <div className="text-center mt-5">
+                <div className="mb-4">
+                  <i className="bi bi-inbox display-1 text-muted"></i>
+                </div>
+                <p className="lead text-muted">
+                  {searchQuery
+                    ? 'No items found matching your search.'
+                    : `No items available in the selected category.`}
+                </p>
               </div>
-              <p className="lead text-muted">
-                {searchQuery
-                  ? 'No items found matching your search.'
-                  : `No ${activeTab} items available.`}
-              </p>
-            </div>
-          )}
+            )}
+          </div>
         </>
       )}
     </div>

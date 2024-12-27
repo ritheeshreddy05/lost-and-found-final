@@ -9,7 +9,8 @@ const ReportItem = ({ onItemReported }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    foundLocation: ''
+    foundLocation: '',
+    category: '' // Changed to a single string for single selection
   });
   const [image, setImage] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
@@ -20,7 +21,8 @@ const ReportItem = ({ onItemReported }) => {
     setFormData({
       title: '',
       description: '',
-      foundLocation: ''
+      foundLocation: '',
+      category: '' // Reset category field
     });
     setImage(null);
     setImagePreview(null);
@@ -33,7 +35,7 @@ const ReportItem = ({ onItemReported }) => {
     const { name, value } = e.target;
     setFormData(prevState => ({
       ...prevState,
-      [name]: value
+      [name]: value // Set selected category or other fields
     }));
   };
 
@@ -70,6 +72,7 @@ const ReportItem = ({ onItemReported }) => {
       formDataToSend.append('title', formData.title);
       formDataToSend.append('description', formData.description);
       formDataToSend.append('foundLocation', formData.foundLocation);
+      formDataToSend.append('category', formData.category); // Send exact category selected
       formDataToSend.append('reporterRollNo', rollNo);
       formDataToSend.append('handoverLocation', 'Security Office');
 
@@ -169,6 +172,30 @@ const ReportItem = ({ onItemReported }) => {
                     required
                     disabled={loading}
                   />
+                </div>
+
+                <div className="mb-3">
+                  <label htmlFor="category" className="form-label">Category</label>
+                  <select
+                    className="form-select"
+                    id="category"
+                    name="category"
+                    value={formData.category}
+                    onChange={handleChange}
+                    required
+                    disabled={loading}
+                  >
+                    <option value="">Select a category</option>
+                    <option value="Stationery">Stationery</option>
+                    <option value="Electronics">Electronics</option>
+                    <option value="Clothing">Clothing</option>
+                    <option value="Personal belongings">Personal belongings</option>
+                    <option value="Academic materials">Academic materials</option>
+                    <option value="Accessories">Accessories</option>
+                    <option value="Sports equipment">Sports equipment</option>
+                    <option value="Food containers/Water bottles">Food containers/Water bottles</option>
+                    <option value="Other">Other</option>
+                  </select>
                 </div>
 
                 <div className="mb-4">

@@ -7,7 +7,7 @@ const Home = () => {
       <div className="container py-5">
         <div className="text-center mb-5">
           <h1 className="display-2 fw-bold mb-3">
-            <span className="text-primary">Campus</span> Lost & Found
+            <span className="text-primary">EasyFind</span>
           </h1>
           <p className="lead text-muted mb-0 px-md-5 mx-auto" style={{maxWidth: "700px", lineHeight: "1.8"}}>
             Helping our campus community reconnect with lost belongings through a simple and efficient platform.

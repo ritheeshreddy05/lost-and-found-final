@@ -23,7 +23,7 @@ const itemSchema = new mongoose.Schema({
     handoverLocation: {
         type: String,
         default: 'Security Office',
-        trim: true
+        required: false
     },
     reporterRollNo: {
         type: String,
@@ -34,6 +34,12 @@ const itemSchema = new mongoose.Schema({
         type: String,
         enum: ['pending', 'claimed'],
         default: 'pending'
+    },
+    category: {
+        type: String,
+        required: true,
+        
+        default: 'Other'
     }
 }, {
     timestamps: true
