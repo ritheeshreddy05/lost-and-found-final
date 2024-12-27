@@ -110,8 +110,10 @@ const Admin = () => {
                                        <button 
                                            className="btn btn-sm btn-primary me-2"
                                            onClick={() => {
-                                               const rollNo = prompt('Enter claimer roll number:');
-                                               if (rollNo) {
+                                               // Fetch roll numbers from the database
+                                               const rollNumbers = item.claimedByRollNo || []; // Assuming this is part of the item data
+                                               const rollNo = prompt('Enter claimer roll number:', rollNumbers.join(', '));
+                                               if (rollNo && rollNumbers.includes(rollNo)) {
                                                    setClaimRollNo(rollNo);
                                                    openClaimModal(item);
                                                    // Automatically trigger claim after getting roll number
@@ -120,6 +122,8 @@ const Admin = () => {
                                                            ? { ...i, status: 'claimed', claimedByRollNo: rollNo }
                                                            : i
                                                    ));
+                                               } else {
+                                                   alert('Invalid roll number. Please select from the available options.');
                                                }
                                            }}
                                        >
