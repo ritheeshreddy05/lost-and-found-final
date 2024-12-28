@@ -1,7 +1,20 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
 const Home = () => {
+  const [itemName, setItemName] = useState('');
+  const [itemCategory, setItemCategory] = useState('');
+
+  const handleNotify = () => {
+    if (itemName && itemCategory) {
+      alert(`You will be notified when an item named "${itemName}" in the category "${itemCategory}" is reported.`);
+      setItemName('');
+      setItemCategory('');
+    } else {
+      alert('Please enter both item name and category.');
+    }
+  };
+
   return (
     <div className="container-fluid bg-gradient min-vh-100" style={{background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e9f2 100%)'}}>
       <div className="container py-5">
@@ -42,7 +55,7 @@ const Home = () => {
               </div>
             </div>
           </div>
-          
+
           <div className="col-12 col-md-6 col-lg-5">
             <div className="card h-100 border-0 rounded-4" style={{boxShadow: '0 10px 30px rgba(0,0,0,0.08)'}}>
               <div className="card-body d-flex flex-column p-4">
@@ -66,6 +79,48 @@ const Home = () => {
                     <path fillRule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
                   </svg>
                 </Link>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="row justify-content-center g-4 mt-5">
+          <div className="col-12 col-md-6">
+            <div className="card h-100 border-0 rounded-4" style={{boxShadow: '0 10px 30px rgba(0,0,0,0.08)'}}>
+              <div className="card-body d-flex flex-column p-4">
+                <h3 className="h3 fw-bold mb-3 text-center">Get Notified</h3>
+                <p className="text-muted mb-4 text-center">
+                  Enter the item name and select a category to receive notifications when someone reports it.
+                </p>
+                <input 
+                  type="text" 
+                  className="form-control mb-3" 
+                  placeholder="Item Name" 
+                  value={itemName} 
+                  onChange={(e) => setItemName(e.target.value)} 
+                />
+                <select 
+                  className="form-select mb-3" 
+                  value={itemCategory} 
+                  onChange={(e) => setItemCategory(e.target.value)}
+                >
+                  <option value="">Select a category</option>
+                  <option value="Stationery">Stationery</option>
+                  <option value="Electronics">Electronics</option>
+                  <option value="Clothing">Clothing</option>
+                  <option value="Personal belongings">Personal belongings</option>
+                  <option value="Academic materials">Academic materials</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Sports equipment">Sports equipment</option>
+                  <option value="Food containers/Water bottles">Food containers/Water bottles</option>
+                  <option value="Other">Other</option>
+                </select>
+                <button 
+                  className="btn btn-primary mt-auto" 
+                  onClick={handleNotify}
+                >
+                  Notify Me
+                </button>
               </div>
             </div>
           </div>
